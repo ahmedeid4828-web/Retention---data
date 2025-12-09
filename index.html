@@ -3,41 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retention Team Dashboard</title>
+    <title>Retention Team Dashboard - JustClean</title>
+    <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --color-primary: #208084;
-            --color-primary-hover: #1a6a6e;
-            --color-primary-active: #155660;
-            --color-secondary: rgba(94, 82, 64, 0.12);
-            --color-secondary-hover: rgba(94, 82, 64, 0.2);
-            --color-border: rgba(94, 82, 64, 0.2);
-            --color-bg: #fcfcf9;
-            --color-surface: #fffff5;
-            --color-text: #134252;
-            --color-text-secondary: #626c7c;
-            --color-success: #218084;
-            --color-error: #c01530;
-            --color-warning: #a84d2f;
+            /* JustClean colors as per their official website */
+            --color-primary: #00A79D; /* Main teal green */
+            --color-primary-dark: #00857C; /* Dark green */
+            --color-primary-light: #33B9B0; /* Light green */
+            --color-secondary: #FF6B35; /* Orange */
+            --color-secondary-dark: #E55A2B;
+            --color-accent: #2D3047; /* Dark blue */
+            --color-accent-light: #3E4160;
+            --color-bg: #F8F9FA; /* Light background */
+            --color-surface: #FFFFFF; /* White surfaces */
+            --color-text: #333333; /* Dark text */
+            --color-text-secondary: #666666; /* Secondary text */
+            --color-text-light: #999999; /* Light text */
+            --color-border: #E0E0E0; /* Borders */
+            --color-success: #28A745; /* Success green */
+            --color-error: #DC3545; /* Error red */
+            --color-warning: #FFC107; /* Warning yellow */
+            --color-info: #17A2B8; /* Info blue */
+            
+            /* Spacing */
+            --space-8: 8px;
+            --space-12: 12px;
             --space-16: 16px;
             --space-20: 20px;
             --space-24: 24px;
+            --space-32: 32px;
+            
+            /* Border radius */
+            --radius-sm: 4px;
             --radius-base: 8px;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+            
+            /* Fonts */
+            --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
         }
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--color-bg);
+            font-family: var(--font-primary);
+            background-color: var(--color-bg);
             color: var(--color-text);
+            line-height: 1.6;
         }
 
         .container {
@@ -46,159 +74,355 @@
             padding: var(--space-20);
         }
 
+        /* Header */
         .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-20) 0;
             margin-bottom: var(--space-24);
-            border-bottom: 2px solid var(--color-border);
-            padding-bottom: var(--space-20);
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-16);
+        }
+
+        .logo {
+            height: 40px;
         }
 
         .header h1 {
-            margin: 0 0 var(--space-20) 0;
             font-size: 28px;
-            color: var(--color-text);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: 0;
         }
 
+        .header-subtitle {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
+            background: var(--color-surface);
+            padding: var(--space-12) var(--space-16);
+            border-radius: var(--radius-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--color-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Navigation Tabs */
         .nav-tabs {
             display: flex;
-            gap: var(--space-16);
+            gap: var(--space-8);
             margin-bottom: var(--space-24);
-            border-bottom: 2px solid var(--color-border);
+            background: var(--color-surface);
+            padding: var(--space-8);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
         }
 
         .nav-tab {
-            padding: var(--space-16) var(--space-20);
+            flex: 1;
+            padding: var(--space-12) var(--space-16);
             background: none;
             border: none;
-            border-bottom: 3px solid transparent;
+            border-radius: var(--radius-base);
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
             color: var(--color-text-secondary);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-8);
         }
 
         .nav-tab:hover {
             color: var(--color-primary);
+            background-color: rgba(0, 167, 157, 0.05);
         }
 
         .nav-tab.active {
             color: var(--color-primary);
-            border-bottom-color: var(--color-primary);
+            background-color: rgba(0, 167, 157, 0.1);
+            box-shadow: var(--shadow-sm);
         }
 
+        .nav-tab i {
+            font-size: 18px;
+        }
+
+        /* Pages */
         .page {
             display: none;
         }
 
         .page.active {
             display: block;
+            animation: fadeIn 0.5s ease;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Filters */
         .filters {
             display: flex;
             gap: var(--space-16);
             margin-bottom: var(--space-24);
             flex-wrap: wrap;
-            align-items: center;
+            align-items: flex-end;
+            background: var(--color-surface);
+            padding: var(--space-20);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
+            flex: 1;
+            min-width: 180px;
         }
 
         .filter-label {
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
             color: var(--color-text);
         }
 
         .filter-input, .filter-select {
-            padding: 10px 12px;
+            padding: 12px;
             border: 1px solid var(--color-border);
             border-radius: var(--radius-base);
             font-size: 14px;
             background: var(--color-surface);
             color: var(--color-text);
-            min-width: 180px;
-        }
-
-        .filter-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
+            transition: all 0.3s;
         }
 
         .filter-input:focus, .filter-select:focus {
             outline: none;
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(32, 128, 132, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 167, 157, 0.2);
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: var(--color-primary);
-            color: #fcfcf9;
+            color: white;
             border: none;
             border-radius: var(--radius-base);
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
         }
 
         .btn:hover {
-            background: var(--color-primary-hover);
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
-        .btn:active {
-            background: var(--color-primary-active);
+        .btn-secondary {
+            background: var(--color-secondary);
         }
 
+        .btn-secondary:hover {
+            background: var(--color-secondary-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 167, 157, 0.05);
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-20);
+            margin-bottom: var(--space-32);
+        }
+
+        .stat-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-sm);
+            border-top: 4px solid var(--color-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .stat-change {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .stat-change.positive {
+            color: var(--color-success);
+        }
+
+        .stat-change.negative {
+            color: var(--color-error);
+        }
+
+        /* Charts */
         .charts-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: var(--space-24);
-            margin-top: var(--space-24);
+            margin-bottom: var(--space-32);
+        }
+
+        @media (max-width: 1100px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         .chart-box {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-20);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
             box-shadow: var(--shadow-sm);
         }
 
-        .chart-box h3 {
-            margin: 0 0 var(--space-16) 0;
-            font-size: 16px;
-            color: var(--color-text);
-            border-bottom: 2px solid var(--color-border);
-            padding-bottom: var(--space-16);
-        }
-
-        .chart-box canvas {
-            max-height: 350px;
-        }
-
-        .form-group {
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: var(--space-20);
         }
 
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 14px;
+        .chart-box h3 {
+            margin: 0;
+            font-size: 18px;
             color: var(--color-text);
         }
 
-        .form-input, .form-select {
-            width: 100%;
+        .chart-actions {
+            display: flex;
+            gap: var(--space-8);
+        }
+
+        .chart-action-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s;
+        }
+
+        .chart-action-btn:hover {
+            color: var(--color-primary);
+            background: rgba(0, 167, 157, 0.05);
+        }
+
+        .chart-box canvas {
+            max-height: 300px;
+        }
+
+        /* Data Input Page */
+        .form-container {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-32);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-header {
+            margin-bottom: var(--space-32);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: var(--space-16);
+        }
+
+        .form-header h2 {
+            color: var(--color-primary);
+            font-size: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-24);
+            margin-bottom: var(--space-24);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .form-label i {
+            color: var(--color-primary);
+        }
+
+        .form-input, .form-select, .form-textarea {
             padding: 12px;
             border: 1px solid var(--color-border);
             border-radius: var(--radius-base);
@@ -206,71 +430,143 @@
             background: var(--color-surface);
             color: var(--color-text);
             font-family: inherit;
+            transition: all 0.3s;
         }
 
-        .form-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
-        }
-
-        .form-input:focus, .form-select:focus {
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(32, 128, 132, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 167, 157, 0.2);
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-16);
-            margin-bottom: var(--space-20);
-        }
-
-        .submit-btn {
-            padding: 12px 20px;
-            background: var(--color-primary);
-            color: #fcfcf9;
-            border: none;
-            border-radius: var(--radius-base);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .submit-btn:hover {
-            background: var(--color-primary-hover);
-        }
-
-        .submit-btn:active {
-            background: var(--color-primary-active);
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
         }
 
         .button-group {
             display: flex;
-            gap: 12px;
-            margin-top: 24px;
+            gap: var(--space-16);
+            margin-top: var(--space-32);
         }
 
-        .button-group .submit-btn {
+        .button-group .btn {
             flex: 1;
         }
 
-        .success-message {
-            display: none;
-            background: rgba(33, 128, 132, 0.1);
-            border: 1px solid var(--color-success);
-            color: var(--color-success);
+        /* Data Management Page */
+        .data-management-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-24);
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            background: var(--color-surface);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-secondary);
+        }
+
+        .data-table-container {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .data-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--color-border);
+            transition: background-color 0.3s;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: rgba(0, 167, 157, 0.05);
+        }
+
+        .data-table td {
+            padding: 16px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--space-8);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-base);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--color-warning);
+        }
+
+        .btn-edit:hover {
+            background-color: rgba(255, 193, 7, 0.2);
+        }
+
+        .btn-delete {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--color-error);
+        }
+
+        .btn-delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+        }
+
+        /* Messages */
+        .message {
             padding: var(--space-16);
             border-radius: var(--radius-base);
             margin-bottom: var(--space-16);
-        }
-
-        .success-message.show {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
             animation: slideIn 0.3s ease;
         }
 
@@ -285,72 +581,210 @@
             }
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: var(--space-16);
+        .message-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: var(--color-success);
+        }
+
+        .message-error {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: var(--color-error);
+        }
+
+        .message-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: var(--color-warning);
+        }
+
+        .message-info {
+            background-color: rgba(23, 162, 184, 0.1);
+            border: 1px solid rgba(23, 162, 184, 0.3);
+            color: var(--color-info);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-48) var(--space-20);
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: var(--space-16);
+            color: var(--color-border);
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: var(--space-8);
+        }
+
+        .empty-state p {
             margin-bottom: var(--space-24);
         }
 
-        .stat-card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-16);
-            text-align: center;
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-48);
         }
 
-        .stat-label {
-            font-size: 12px;
-            color: var(--color-text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 167, 157, 0.1);
+            border-top: 3px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: var(--space-16);
         }
 
-        .stat-value {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--color-primary);
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
+        /* Edit Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-32);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .charts-container {
-                grid-template-columns: 1fr;
+            .container {
+                padding: var(--space-12);
             }
-
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-16);
+            }
+            
+            .user-info {
+                align-self: stretch;
+                justify-content: center;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
             .filters {
                 flex-direction: column;
             }
-
-            .filter-input, .filter-select {
+            
+            .filter-group {
                 width: 100%;
-                min-width: auto;
             }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
+            
             .button-group {
                 flex-direction: column;
+            }
+            
+            .data-management-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-16);
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-box {
+                padding: var(--space-16);
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <h1>📊 Retention Team Dashboard</h1>
+            <div class="header-left">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100" height="100" rx="20" fill="#00A79D"/>
+                        <path d="M30 35L50 55L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M30 65L50 45L70 65" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Retention Team Dashboard</h1>
+                    <div class="header-subtitle">Comprehensive system for monitoring and analyzing customer retention metrics</div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">RT</div>
+                <div>
+                    <div style="font-weight: 600;">Retention Team</div>
+                    <div style="font-size: 12px; color: var(--color-text-secondary);">Quality Department</div>
+                </div>
+            </div>
         </div>
 
+        <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <button class="nav-tab active" data-page="dashboard">Dashboard</button>
-            <button class="nav-tab" data-page="input">Data Input</button>
+            <button class="nav-tab active" data-page="dashboard">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </button>
+            <button class="nav-tab" data-page="input">
+                <i class="fas fa-plus-circle"></i>
+                Data Input
+            </button>
+            <button class="nav-tab" data-page="manage">
+                <i class="fas fa-database"></i>
+                Data Management
+            </button>
+            <button class="nav-tab" data-page="settings">
+                <i class="fas fa-cog"></i>
+                Settings
+            </button>
         </div>
+
+        <!-- System Messages -->
+        <div id="messageContainer"></div>
 
         <!-- Dashboard Page -->
         <div id="dashboard" class="page active">
+            <!-- Filters -->
             <div class="filters">
                 <div class="filter-group">
                     <label class="filter-label">Start Date</label>
@@ -361,7 +795,7 @@
                     <input type="date" id="endDate" class="filter-input">
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Select Country</label>
+                    <label class="filter-label">Country</label>
                     <select id="countryFilter" class="filter-select">
                         <option value="">All Countries</option>
                         <option value="Saudi Arabia">Saudi Arabia</option>
@@ -373,65 +807,297 @@
                         <option value="Egypt">Egypt</option>
                     </select>
                 </div>
-                <button class="btn" onclick="loadDashboardData()">Update Dashboard</button>
+                <button class="btn" onclick="loadDashboardData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Update Dashboard
+                </button>
             </div>
 
-            <div class="stats-grid" id="statsGrid"></div>
+            <!-- Statistics -->
+            <div class="stats-grid" id="statsGrid">
+                <!-- Will be populated by JavaScript -->
+            </div>
 
+            <!-- Charts -->
             <div class="charts-container">
                 <div class="chart-box">
-                    <h3>Churn Rate by Country</h3>
+                    <div class="chart-header">
+                        <h3>Churn Rate by Country</h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" title="Expand"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
                     <canvas id="churnChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <h3>Non JC Distribution</h3>
+                    <div class="chart-header">
+                        <h3>Non-JC Distribution</h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" title="Expand"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
                     <canvas id="nonJcChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <h3>Welcome Calls</h3>
+                    <div class="chart-header">
+                        <h3>Welcome Calls</h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" title="Expand"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
                     <canvas id="welcomeChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <h3>Cancellations</h3>
+                    <div class="chart-header">
+                        <h3>Cancellations</h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" title="Expand"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
                     <canvas id="cancelChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <h3>App Reviews</h3>
+                    <div class="chart-header">
+                        <h3>App Reviews</h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" title="Expand"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
                     <canvas id="reviewsChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <h3>NPS Score</h3>
+                    <div class="chart-header">
+                        <h3>NPS Score</h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" title="Expand"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
                     <canvas id="npsChart"></canvas>
-                </div>
-                <div class="chart-box">
-                    <h3>Overall Metrics Trend</h3>
-                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Data Input Page -->
         <div id="input" class="page">
-            <div class="success-message" id="successMessage">✓ Data saved successfully!</div>
-            
-            <form onsubmit="submitData(event)">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2><i class="fas fa-plus-circle"></i> Enter New Data</h2>
+                    <p style="color: var(--color-text-secondary); margin-top: 8px;">Enter new retention metrics data here</p>
+                </div>
+                
+                <form id="dataForm" onsubmit="submitData(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="metricType">
+                                <i class="fas fa-chart-bar"></i>
+                                Metric Type
+                            </label>
+                            <select id="metricType" class="form-select" required>
+                                <option value="">Select Metric</option>
+                                <option value="Churn">Churn</option>
+                                <option value="Non JC">Non-JC</option>
+                                <option value="Welcome Call">Welcome Call</option>
+                                <option value="Cancellation">Cancellation</option>
+                                <option value="App Reviews">App Reviews</option>
+                                <option value="NPS">NPS Score</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="inputCountry">
+                                <i class="fas fa-globe"></i>
+                                Country
+                            </label>
+                            <select id="inputCountry" class="form-select" required>
+                                <option value="">Select Country</option>
+                                <option value="Saudi Arabia">Saudi Arabia</option>
+                                <option value="UAE">UAE</option>
+                                <option value="Kuwait">Kuwait</option>
+                                <option value="Qatar">Qatar</option>
+                                <option value="Bahrain">Bahrain</option>
+                                <option value="Oman">Oman</option>
+                                <option value="Egypt">Egypt</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="inputValue">
+                                <i class="fas fa-hashtag"></i>
+                                Value
+                            </label>
+                            <input type="number" id="inputValue" class="form-input" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="inputDate">
+                                <i class="fas fa-calendar"></i>
+                                Date
+                            </label>
+                            <input type="date" id="inputDate" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="inputNotes">
+                                <i class="fas fa-sticky-note"></i>
+                                Notes (Optional)
+                            </label>
+                            <textarea id="inputNotes" class="form-textarea" placeholder="Add additional notes here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-save"></i>
+                            Save Data
+                        </button>
+                        <button type="reset" class="btn btn-outline">
+                            <i class="fas fa-undo"></i>
+                            Clear Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Data Management Page -->
+        <div id="manage" class="page">
+            <div class="form-container">
+                <div class="data-management-header">
+                    <div>
+                        <h2><i class="fas fa-database"></i> Data Management</h2>
+                        <p style="color: var(--color-text-secondary); margin-top: 8px;">View, edit, and delete recorded data</p>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search data...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Metric</th>
+                                <th>Country</th>
+                                <th>Value</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="loadingData" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div>Loading data...</div>
+                </div>
+
+                <div id="emptyData" class="empty-state" style="display: none;">
+                    <i class="fas fa-database"></i>
+                    <h3>No Data Found</h3>
+                    <p>No data has been added yet. Start by adding new data from the "Data Input" page.</p>
+                    <button class="btn" onclick="switchToTab('input')">
+                        <i class="fas fa-plus-circle"></i>
+                        Add New Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings" class="page">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2><i class="fas fa-cog"></i> System Settings</h2>
+                    <p style="color: var(--color-text-secondary); margin-top: 8px;">Customize dashboard settings and connect services</p>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-fire"></i>
+                            Firebase Connection Status
+                        </label>
+                        <div id="firebaseStatus" style="padding: 12px; border-radius: var(--radius-base); background: rgba(0, 167, 157, 0.1); color: var(--color-primary);">
+                            Checking connection...
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-cloud"></i>
+                            Records Stored
+                        </label>
+                        <div id="recordCount" style="padding: 12px; border-radius: var(--radius-base); background: rgba(45, 48, 71, 0.1); color: var(--color-accent);">
+                            Counting records...
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-trash-alt"></i>
+                            Local Data Management
+                        </label>
+                        <div style="display: flex; gap: var(--space-12);">
+                            <button class="btn btn-outline" onclick="clearLocalData()">
+                                <i class="fas fa-trash"></i>
+                                Clear Local Storage
+                            </button>
+                            <button class="btn btn-outline" onclick="exportData()">
+                                <i class="fas fa-download"></i>
+                                Export Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-paint-brush"></i>
+                            App Theme
+                        </label>
+                        <select id="themeSelect" class="form-select" onchange="changeTheme(this.value)">
+                            <option value="light">Light Theme</option>
+                            <option value="dark">Dark Theme</option>
+                            <option value="auto">Auto (System Preference)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Data Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--color-primary); margin-bottom: var(--space-24);">Edit Data</h2>
+            <form id="editForm" onsubmit="updateData(event)">
+                <input type="hidden" id="editId">
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Metric Type</label>
-                        <select id="metricType" class="form-select" required>
+                        <select id="editMetricType" class="form-select" required>
                             <option value="">Select Metric</option>
                             <option value="Churn">Churn</option>
-                            <option value="Non JC">Non JC</option>
+                            <option value="Non JC">Non-JC</option>
                             <option value="Welcome Call">Welcome Call</option>
                             <option value="Cancellation">Cancellation</option>
                             <option value="App Reviews">App Reviews</option>
-                            <option value="NPS">NPS</option>
+                            <option value="NPS">NPS Score</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label class="form-label">Country</label>
-                        <select id="inputCountry" class="form-select" required>
+                        <select id="editCountry" class="form-select" required>
                             <option value="">Select Country</option>
                             <option value="Saudi Arabia">Saudi Arabia</option>
                             <option value="UAE">UAE</option>
@@ -442,244 +1108,321 @@
                             <option value="Egypt">Egypt</option>
                         </select>
                     </div>
-
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Value</label>
-                        <input type="number" id="inputValue" class="form-input" min="0" required>
+                        <input type="number" id="editValue" class="form-input" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="editDate" class="form-input" required>
                     </div>
                 </div>
-
-                <div class="button-group">
-                    <button type="submit" class="submit-btn">Save Data</button>
-                    <button type="button" class="submit-btn" onclick="downloadData()">📥 Download Excel</button>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="editNotes" class="form-textarea"></textarea>
+                </div>
+                <div class="button-group" style="margin-top: var(--space-24);">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeEditModal()">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let churnChartInstance, nonJcChartInstance, welcomeChartInstance, 
-            cancelChartInstance, reviewsChartInstance, npsChartInstance, trendChartInstance;
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        const SHEET_ID = '1HNkYCfOhgBGtmiQG9Biae7AuWeSazt3TsMkNNWX5tIE';
-        const API_KEY = 'AIzaSyBMNOaVjxjRBWZ_r1E_b2p8Z-rqK2lG3aE';
+        let db;
+        let isFirebaseConnected = false;
+        let allDataRecords = [];
 
-        // Tab Navigation
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                e.target.classList.add('active');
-                document.getElementById(e.target.dataset.page).classList.add('active');
-                if (e.target.dataset.page === 'dashboard') {
-                    setTimeout(loadDashboardData, 100);
-                }
-            });
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            
+            document.getElementById('endDate').valueAsDate = today;
+            document.getElementById('startDate').valueAsDate = lastMonth;
+            document.getElementById('inputDate').valueAsDate = today;
+            
+            // Initialize tab navigation
+            initTabNavigation();
+            
+            // Try to connect to Firebase
+            initFirebase();
+            
+            // Load data
+            loadData();
         });
 
-        // Set today's date as default
-        document.getElementById('endDate').valueAsDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30);
-        document.getElementById('startDate').valueAsDate = startDate;
+        // Initialize Tab Navigation
+        function initTabNavigation() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                    
+                    e.target.classList.add('active');
+                    const pageId = e.target.getAttribute('data-page');
+                    document.getElementById(pageId).classList.add('active');
+                    
+                    // Load data when switching to dashboard
+                    if (pageId === 'dashboard') {
+                        setTimeout(loadDashboardData, 100);
+                    }
+                    
+                    // Load data table when switching to data management
+                    if (pageId === 'manage') {
+                        setTimeout(loadDataTable, 100);
+                    }
+                    
+                    // Update Firebase status when switching to settings
+                    if (pageId === 'settings') {
+                        updateFirebaseStatus();
+                        updateRecordCount();
+                    }
+                });
+            });
+        }
 
-        // Load Dashboard Data
-        async function loadDashboardData() {
+        // Switch to specific tab
+        function switchToTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            document.querySelector(`.nav-tab[data-page="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'dashboard') {
+                setTimeout(loadDashboardData, 100);
+            } else if (tabName === 'manage') {
+                setTimeout(loadDataTable, 100);
+            }
+        }
+
+        // Initialize Firebase
+        function initFirebase() {
             try {
-                const allRecords = JSON.parse(localStorage.getItem('dashboardData')) || [];
-                updateCharts(allRecords);
-                updateStats(allRecords);
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                isFirebaseConnected = true;
+                
+                // Test connection
+                db.collection('test').doc('connection').get()
+                    .then(() => {
+                        showMessage('Successfully connected to Firebase database', 'success');
+                        updateFirebaseStatus();
+                    })
+                    .catch(error => {
+                        console.error('Failed to connect to Firebase:', error);
+                        showMessage('Failed to connect to Firebase. Using local storage instead.', 'warning');
+                        isFirebaseConnected = false;
+                        updateFirebaseStatus();
+                    });
+            } catch (error) {
+                console.error('Error initializing Firebase:', error);
+                isFirebaseConnected = false;
+                updateFirebaseStatus();
+            }
+        }
+
+        // Update Firebase connection status
+        function updateFirebaseStatus() {
+            const statusElement = document.getElementById('firebaseStatus');
+            if (statusElement) {
+                if (isFirebaseConnected) {
+                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Connected to Firebase successfully';
+                    statusElement.style.background = 'rgba(40, 167, 69, 0.1)';
+                    statusElement.style.color = 'var(--color-success)';
+                } else {
+                    statusElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Not connected to Firebase (using local storage)';
+                    statusElement.style.background = 'rgba(220, 53, 69, 0.1)';
+                    statusElement.style.color = 'var(--color-error)';
+                }
+            }
+        }
+
+        // Update record count
+        function updateRecordCount() {
+            const recordCountElement = document.getElementById('recordCount');
+            if (recordCountElement) {
+                const count = allDataRecords.length;
+                recordCountElement.innerHTML = `<i class="fas fa-database"></i> ${count} records stored`;
+            }
+        }
+
+        // Load data from Firebase or local storage
+        async function loadData() {
+            try {
+                if (isFirebaseConnected) {
+                    // Load data from Firebase
+                    const snapshot = await db.collection('retentionData').get();
+                    allDataRecords = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        data.id = doc.id;
+                        allDataRecords.push(data);
+                    });
+                    
+                    showMessage(`Loaded ${allDataRecords.length} records from Firebase`, 'success');
+                } else {
+                    // Load data from local storage
+                    const localData = localStorage.getItem('retentionDashboardData');
+                    allDataRecords = localData ? JSON.parse(localData) : [];
+                    
+                    if (allDataRecords.length > 0) {
+                        showMessage(`Loaded ${allDataRecords.length} records from local storage`, 'info');
+                    }
+                }
+                
+                // Update dashboard
+                loadDashboardData();
+                updateRecordCount();
             } catch (error) {
                 console.error('Error loading data:', error);
+                showMessage('Error occurred while loading data', 'error');
             }
         }
 
-        // Update Charts
-        function updateCharts(records) {
-            const chartColors = {
-                'Saudi Arabia': '#FF6B6B',
-                'UAE': '#4ECDC4',
-                'Kuwait': '#45B7D1',
-                'Qatar': '#96CEB4',
-                'Bahrain': '#FFEAA7',
-                'Oman': '#DDA0DD',
-                'Egypt': '#F8B88B'
-            };
-
-            const dataByCountryMetric = {};
-            records.forEach(record => {
-                const key = `${record.country}-${record.metric}`;
-                if (!dataByCountryMetric[key]) {
-                    dataByCountryMetric[key] = 0;
+        // Save data to Firebase or local storage
+        async function saveData(record) {
+            try {
+                if (isFirebaseConnected) {
+                    // Save to Firebase
+                    const docRef = await db.collection('retentionData').add({
+                        ...record,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: 'user' // Can be replaced with actual user info
+                    });
+                    
+                    record.id = docRef.id;
+                    allDataRecords.push(record);
+                    showMessage('Data saved to Firebase successfully', 'success');
+                } else {
+                    // Save to local storage
+                    record.id = Date.now().toString(); // Temporary unique ID
+                    allDataRecords.push(record);
+                    localStorage.setItem('retentionDashboardData', JSON.stringify(allDataRecords));
+                    showMessage('Data saved to local storage successfully', 'success');
                 }
-                dataByCountryMetric[key] += record.value;
-            });
-
-            const countries = [...new Set(records.map(r => r.country))].sort();
-            const colors = countries.map(c => chartColors[c] || '#888888');
-
-            // Churn Chart
-            updateChart('churnChart', {
-                type: 'bar',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'Churn',
-                        data: countries.map(c => dataByCountryMetric[`${c}-Churn`] || 0),
-                        backgroundColor: colors
-                    }]
-                }
-            });
-
-            // Non JC Chart
-            updateChart('nonJcChart', {
-                type: 'doughnut',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'Non JC',
-                        data: countries.map(c => dataByCountryMetric[`${c}-Non JC`] || 0),
-                        backgroundColor: colors
-                    }]
-                }
-            });
-
-            // Welcome Calls Chart
-            updateChart('welcomeChart', {
-                type: 'line',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'Welcome Calls',
-                        data: countries.map(c => dataByCountryMetric[`${c}-Welcome Call`] || 0),
-                        borderColor: '#208084',
-                        backgroundColor: 'rgba(32, 128, 132, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                }
-            });
-
-            // Cancellations Chart
-            updateChart('cancelChart', {
-                type: 'radar',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'Cancellations',
-                        data: countries.map(c => dataByCountryMetric[`${c}-Cancellation`] || 0),
-                        borderColor: '#FF6B6B',
-                        backgroundColor: 'rgba(255, 107, 107, 0.2)',
-                        fill: true
-                    }]
-                }
-            });
-
-            // App Reviews Chart
-            updateChart('reviewsChart', {
-                type: 'polarArea',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'App Reviews',
-                        data: countries.map(c => dataByCountryMetric[`${c}-App Reviews`] || 0),
-                        backgroundColor: colors.map((c, i) => c + '33')
-                    }]
-                }
-            });
-
-            // NPS Chart
-            updateChart('npsChart', {
-                type: 'bar',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'NPS Score',
-                        data: countries.map(c => dataByCountryMetric[`${c}-NPS`] || 0),
-                        backgroundColor: colors
-                    }]
-                }
-            });
-
-            // Trend Chart
-            updateChart('trendChart', {
-                type: 'line',
-                data: {
-                    labels: countries,
-                    datasets: [
-                        {
-                            label: 'Churn',
-                            data: countries.map(c => dataByCountryMetric[`${c}-Churn`] || 0),
-                            borderColor: '#FF6B6B'
-                        },
-                        {
-                            label: 'Welcome',
-                            data: countries.map(c => dataByCountryMetric[`${c}-Welcome Call`] || 0),
-                            borderColor: '#4ECDC4'
-                        },
-                        {
-                            label: 'NPS',
-                            data: countries.map(c => dataByCountryMetric[`${c}-NPS`] || 0),
-                            borderColor: '#208084'
-                        }
-                    ]
-                }
-            });
-        }
-
-        // Update Chart Helper
-        function updateChart(canvasId, config) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            const globalCharts = {
-                'churnChart': 'churnChartInstance',
-                'nonJcChart': 'nonJcChartInstance',
-                'welcomeChart': 'welcomeChartInstance',
-                'cancelChart': 'cancelChartInstance',
-                'reviewsChart': 'reviewsChartInstance',
-                'npsChart': 'npsChartInstance',
-                'trendChart': 'trendChartInstance'
-            };
-
-            const varName = globalCharts[canvasId];
-            if (window[varName]) {
-                window[varName].destroy();
+                
+                updateRecordCount();
+                return true;
+            } catch (error) {
+                console.error('Error saving data:', error);
+                showMessage('Error occurred while saving data', 'error');
+                return false;
             }
-
-            window[varName] = new Chart(ctx, {
-                type: config.type,
-                data: config.data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    },
-                    scales: config.type !== 'doughnut' && config.type !== 'polarArea' ? {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#626c7c'
-                            },
-                            grid: {
-                                color: 'rgba(98, 108, 124, 0.1)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: '#626c7c'
-                            },
-                            grid: {
-                                color: 'rgba(98, 108, 124, 0.1)'
-                            }
-                        }
-                    } : undefined
-                }
-            });
         }
 
-        // Update Statistics
+        // Update data in Firebase or local storage
+        async function updateDataInStorage(recordId, updatedData) {
+            try {
+                if (isFirebaseConnected) {
+                    // Update in Firebase
+                    await db.collection('retentionData').doc(recordId).update({
+                        ...updatedData,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    showMessage('Data updated in Firebase successfully', 'success');
+                } else {
+                    // Update in local storage
+                    const index = allDataRecords.findIndex(r => r.id === recordId);
+                    if (index !== -1) {
+                        allDataRecords[index] = { ...allDataRecords[index], ...updatedData };
+                        localStorage.setItem('retentionDashboardData', JSON.stringify(allDataRecords));
+                        showMessage('Data updated in local storage successfully', 'success');
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error updating data:', error);
+                showMessage('Error occurred while updating data', 'error');
+                return false;
+            }
+        }
+
+        // Delete data from Firebase or local storage
+        async function deleteDataFromStorage(recordId) {
+            try {
+                if (isFirebaseConnected) {
+                    // Delete from Firebase
+                    await db.collection('retentionData').doc(recordId).delete();
+                    showMessage('Data deleted from Firebase successfully', 'success');
+                } else {
+                    // Delete from local storage
+                    allDataRecords = allDataRecords.filter(r => r.id !== recordId);
+                    localStorage.setItem('retentionDashboardData', JSON.stringify(allDataRecords));
+                    showMessage('Data deleted from local storage successfully', 'success');
+                }
+                
+                updateRecordCount();
+                return true;
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                showMessage('Error occurred while deleting data', 'error');
+                return false;
+            }
+        }
+
+        // Load dashboard
+        function loadDashboardData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const countryFilter = document.getElementById('countryFilter').value;
+            
+            // Filter data by date and country
+            let filteredData = allDataRecords;
+            
+            if (startDate) {
+                filteredData = filteredData.filter(record => {
+                    const recordDate = new Date(record.date);
+                    const filterDate = new Date(startDate);
+                    return recordDate >= filterDate;
+                });
+            }
+            
+            if (endDate) {
+                filteredData = filteredData.filter(record => {
+                    const recordDate = new Date(record.date);
+                    const filterDate = new Date(endDate);
+                    return recordDate <= filterDate;
+                });
+            }
+            
+            if (countryFilter) {
+                filteredData = filteredData.filter(record => record.country === countryFilter);
+            }
+            
+            // Update statistics
+            updateStats(filteredData);
+            
+            // Update charts
+            updateCharts(filteredData);
+        }
+
+        // Update statistics
         function updateStats(records) {
             const stats = {
                 totalChurn: 0,
@@ -688,132 +1431,500 @@
                 totalCancel: 0,
                 totalReviews: 0,
                 avgNps: 0,
-                count: 0
+                npsCount: 0
             };
-
+            
             records.forEach(record => {
-                if (record.metric === 'Churn') stats.totalChurn += record.value;
-                if (record.metric === 'Non JC') stats.totalNonJc += record.value;
-                if (record.metric === 'Welcome Call') stats.totalWelcome += record.value;
-                if (record.metric === 'Cancellation') stats.totalCancel += record.value;
-                if (record.metric === 'App Reviews') stats.totalReviews += record.value;
+                if (record.metric === 'Churn') stats.totalChurn += parseFloat(record.value) || 0;
+                if (record.metric === 'Non JC') stats.totalNonJc += parseFloat(record.value) || 0;
+                if (record.metric === 'Welcome Call') stats.totalWelcome += parseFloat(record.value) || 0;
+                if (record.metric === 'Cancellation') stats.totalCancel += parseFloat(record.value) || 0;
+                if (record.metric === 'App Reviews') stats.totalReviews += parseFloat(record.value) || 0;
                 if (record.metric === 'NPS') {
-                    stats.avgNps += record.value;
-                    stats.count++;
+                    stats.avgNps += parseFloat(record.value) || 0;
+                    stats.npsCount++;
                 }
             });
-
-            stats.avgNps = stats.count > 0 ? Math.round(stats.avgNps / stats.count) : 0;
-
+            
+            stats.avgNps = stats.npsCount > 0 ? (stats.avgNps / stats.npsCount).toFixed(1) : 0;
+            
             const statsHtml = `
                 <div class="stat-card">
-                    <div class="stat-label">Churn</div>
-                    <div class="stat-value">${stats.totalChurn}</div>
+                    <div class="stat-label"><i class="fas fa-user-slash"></i> Churn</div>
+                    <div class="stat-value">${stats.totalChurn.toLocaleString()}</div>
+                    <div class="stat-change ${stats.totalChurn > 100 ? 'negative' : 'positive'}">
+                        ${stats.totalChurn > 100 ? '↑ High' : '↓ Low'}
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Non JC</div>
-                    <div class="stat-value">${stats.totalNonJc}</div>
+                    <div class="stat-label"><i class="fas fa-user-times"></i> Non-JC</div>
+                    <div class="stat-value">${stats.totalNonJc.toLocaleString()}</div>
+                    <div class="stat-change ${stats.totalNonJc > 50 ? 'negative' : 'positive'}">
+                        ${stats.totalNonJc > 50 ? '↑ High' : '↓ Low'}
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Welcome Calls</div>
-                    <div class="stat-value">${stats.totalWelcome}</div>
+                    <div class="stat-label"><i class="fas fa-phone-alt"></i> Welcome Calls</div>
+                    <div class="stat-value">${stats.totalWelcome.toLocaleString()}</div>
+                    <div class="stat-change positive">↑ Positive</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Cancellations</div>
-                    <div class="stat-value">${stats.totalCancel}</div>
+                    <div class="stat-label"><i class="fas fa-ban"></i> Cancellations</div>
+                    <div class="stat-value">${stats.totalCancel.toLocaleString()}</div>
+                    <div class="stat-change ${stats.totalCancel > 20 ? 'negative' : 'positive'}">
+                        ${stats.totalCancel > 20 ? '↑ High' : '↓ Low'}
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Reviews</div>
-                    <div class="stat-value">${stats.totalReviews}</div>
+                    <div class="stat-label"><i class="fas fa-star"></i> App Reviews</div>
+                    <div class="stat-value">${stats.totalReviews.toLocaleString()}</div>
+                    <div class="stat-change positive">↑ Positive</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Avg NPS</div>
+                    <div class="stat-label"><i class="fas fa-chart-line"></i> Avg NPS</div>
                     <div class="stat-value">${stats.avgNps}</div>
+                    <div class="stat-change ${stats.avgNps > 50 ? 'positive' : 'negative'}">
+                        ${stats.avgNps > 50 ? '↑ Excellent' : '↓ Needs Improvement'}
+                    </div>
                 </div>
             `;
-
+            
             document.getElementById('statsGrid').innerHTML = statsHtml;
         }
 
-        // Store all data locally
-        let allDataRecords = JSON.parse(localStorage.getItem('dashboardData')) || [];
+        // Update charts
+        function updateCharts(records) {
+            const countries = ['Saudi Arabia', 'UAE', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Egypt'];
+            const colors = [
+                '#00A79D', '#FF6B35', '#2D3047', '#4ECDC4', '#96CEB4', '#FFEAA7', '#DDA0DD'
+            ];
+            
+            // Aggregate data by country and metric
+            const dataByCountryMetric = {};
+            countries.forEach(country => {
+                ['Churn', 'Non JC', 'Welcome Call', 'Cancellation', 'App Reviews', 'NPS'].forEach(metric => {
+                    const key = `${country}-${metric}`;
+                    dataByCountryMetric[key] = 0;
+                });
+            });
+            
+            records.forEach(record => {
+                const key = `${record.country}-${record.metric}`;
+                if (dataByCountryMetric[key] !== undefined) {
+                    dataByCountryMetric[key] += parseFloat(record.value) || 0;
+                }
+            });
+            
+            // 1. Churn Rate Chart
+            updateChart('churnChart', {
+                type: 'bar',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'Churn Rate',
+                        data: countries.map(c => dataByCountryMetric[`${c}-Churn`] || 0),
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c + 'CC'),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+            
+            // 2. Non-JC Distribution Chart
+            updateChart('nonJcChart', {
+                type: 'doughnut',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'Non-JC',
+                        data: countries.map(c => dataByCountryMetric[`${c}-Non JC`] || 0),
+                        backgroundColor: colors
+                    }]
+                }
+            });
+            
+            // 3. Welcome Calls Chart
+            updateChart('welcomeChart', {
+                type: 'line',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'Welcome Calls',
+                        data: countries.map(c => dataByCountryMetric[`${c}-Welcome Call`] || 0),
+                        borderColor: '#00A79D',
+                        backgroundColor: 'rgba(0, 167, 157, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+            
+            // 4. Cancellations Chart
+            updateChart('cancelChart', {
+                type: 'bar',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'Cancellations',
+                        data: countries.map(c => dataByCountryMetric[`${c}-Cancellation`] || 0),
+                        backgroundColor: '#FF6B35'
+                    }]
+                }
+            });
+            
+            // 5. App Reviews Chart
+            updateChart('reviewsChart', {
+                type: 'polarArea',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'App Reviews',
+                        data: countries.map(c => dataByCountryMetric[`${c}-App Reviews`] || 0),
+                        backgroundColor: colors.map(c => c + '80')
+                    }]
+                }
+            });
+            
+            // 6. NPS Score Chart
+            updateChart('npsChart', {
+                type: 'line',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'NPS Score',
+                        data: countries.map(c => dataByCountryMetric[`${c}-NPS`] || 0),
+                        borderColor: '#2D3047',
+                        backgroundColor: 'rgba(45, 48, 71, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
 
-        // Submit Form Data
-        function submitData(e) {
+        // Helper function to update charts
+        function updateChart(canvasId, config) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Destroy existing chart if exists
+            if (window[canvasId + 'Instance']) {
+                window[canvasId + 'Instance'].destroy();
+            }
+            
+            // Create new chart
+            window[canvasId + 'Instance'] = new Chart(ctx, {
+                type: config.type,
+                data: config.data,
+                options: {
+                    ...config.options,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: 'var(--font-primary)'
+                                }
+                            }
+                        }
+                    },
+                    scales: config.type !== 'doughnut' && config.type !== 'polarArea' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: 'var(--font-primary)'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'var(--font-primary)'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    } : undefined
+                }
+            });
+        }
+
+        // Submit data
+        async function submitData(e) {
             e.preventDefault();
-
+            
             const metricType = document.getElementById('metricType').value;
             const country = document.getElementById('inputCountry').value;
             const value = document.getElementById('inputValue').value;
-            const date = new Date().toLocaleDateString('en-GB');
-
+            const date = document.getElementById('inputDate').value;
+            const notes = document.getElementById('inputNotes').value;
+            
             const record = {
-                date: date,
                 metric: metricType,
                 country: country,
-                value: parseInt(value)
+                value: parseFloat(value),
+                date: date,
+                notes: notes || '',
+                createdAt: new Date().toISOString()
             };
-
-            allDataRecords.push(record);
-            localStorage.setItem('dashboardData', JSON.stringify(allDataRecords));
-
-            // Show success message
-            const successMsg = document.getElementById('successMessage');
-            successMsg.classList.add('show');
-            setTimeout(() => successMsg.classList.remove('show'), 3000);
-
-            // Clear form
-            e.target.reset();
-
-            // Refresh dashboard
-            loadDashboardData();
+            
+            const success = await saveData(record);
+            
+            if (success) {
+                // Reset form
+                e.target.reset();
+                document.getElementById('inputDate').valueAsDate = new Date();
+                
+                // Update dashboard
+                loadDashboardData();
+                
+                // If we're on data management page, update the table
+                if (document.getElementById('manage').classList.contains('active')) {
+                    loadDataTable();
+                }
+            }
         }
 
-        // Download Data as CSV
-        function downloadData() {
-            const records = JSON.parse(localStorage.getItem('dashboardData')) || [];
+        // Load data table
+        function loadDataTable() {
+            const tableBody = document.getElementById('dataTableBody');
+            const loadingElement = document.getElementById('loadingData');
+            const emptyElement = document.getElementById('emptyData');
             
-            if (records.length === 0) {
-                alert('No data to download. Please add some records first.');
+            // Show loading state
+            tableBody.innerHTML = '';
+            loadingElement.style.display = 'flex';
+            emptyElement.style.display = 'none';
+            
+            setTimeout(() => {
+                if (allDataRecords.length === 0) {
+                    loadingElement.style.display = 'none';
+                    emptyElement.style.display = 'block';
+                    return;
+                }
+                
+                // Sort data by date (newest first)
+                const sortedData = [...allDataRecords].sort((a, b) => {
+                    return new Date(b.date) - new Date(a.date);
+                });
+                
+                // Create table rows
+                let tableHtml = '';
+                
+                sortedData.forEach(record => {
+                    tableHtml += `
+                        <tr>
+                            <td>${record.date}</td>
+                            <td>${record.metric}</td>
+                            <td>${record.country}</td>
+                            <td>${record.value}</td>
+                            <td>${record.notes || '-'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="openEditModal('${record.id}')" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon btn-delete" onclick="deleteRecord('${record.id}')" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = tableHtml;
+                loadingElement.style.display = 'none';
+            }, 500);
+        }
+
+        // Open edit modal
+        function openEditModal(recordId) {
+            const record = allDataRecords.find(r => r.id === recordId);
+            if (!record) return;
+            
+            document.getElementById('editId').value = recordId;
+            document.getElementById('editMetricType').value = record.metric;
+            document.getElementById('editCountry').value = record.country;
+            document.getElementById('editValue').value = record.value;
+            document.getElementById('editDate').value = record.date;
+            document.getElementById('editNotes').value = record.notes || '';
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editForm').reset();
+        }
+
+        // Update data
+        async function updateData(e) {
+            e.preventDefault();
+            
+            const recordId = document.getElementById('editId').value;
+            const updatedData = {
+                metric: document.getElementById('editMetricType').value,
+                country: document.getElementById('editCountry').value,
+                value: parseFloat(document.getElementById('editValue').value),
+                date: document.getElementById('editDate').value,
+                notes: document.getElementById('editNotes').value || ''
+            };
+            
+            const success = await updateDataInStorage(recordId, updatedData);
+            
+            if (success) {
+                closeEditModal();
+                loadDataTable();
+                loadDashboardData();
+            }
+        }
+
+        // Delete record
+        async function deleteRecord(recordId) {
+            if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+                const success = await deleteDataFromStorage(recordId);
+                
+                if (success) {
+                    loadDataTable();
+                    loadDashboardData();
+                }
+            }
+        }
+
+        // Search data
+        function searchData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const tableRows = document.querySelectorAll('#dataTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Add search listener
+        document.getElementById('searchInput').addEventListener('input', searchData);
+
+        // Show messages
+        function showMessage(text, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            const messageId = 'msg-' + Date.now();
+            
+            const icon = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            }[type] || 'fa-info-circle';
+            
+            const messageHtml = `
+                <div class="message message-${type}" id="${messageId}">
+                    <i class="fas ${icon}"></i>
+                    <span>${text}</span>
+                </div>
+            `;
+            
+            messageContainer.insertAdjacentHTML('afterbegin', messageHtml);
+            
+            // Remove message automatically after 5 seconds
+            setTimeout(() => {
+                const msgElement = document.getElementById(messageId);
+                if (msgElement) {
+                    msgElement.style.opacity = '0';
+                    msgElement.style.transition = 'opacity 0.5s';
+                    setTimeout(() => msgElement.remove(), 500);
+                }
+            }, 5000);
+        }
+
+        // Clear local storage
+        function clearLocalData() {
+            if (confirm('Are you sure you want to clear all local data? This cannot be undone.')) {
+                localStorage.removeItem('retentionDashboardData');
+                allDataRecords = [];
+                loadDataTable();
+                loadDashboardData();
+                updateRecordCount();
+                showMessage('All local data cleared', 'success');
+            }
+        }
+
+        // Export data
+        function exportData() {
+            if (allDataRecords.length === 0) {
+                showMessage('No data to export', 'warning');
                 return;
             }
-
-            const csvContent = convertToCSV(records);
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
+            
+            // Convert data to CSV
+            const headers = ['Date', 'Metric', 'Country', 'Value', 'Notes'];
+            const csvRows = [
+                headers.join(','),
+                ...allDataRecords.map(record => [
+                    record.date,
+                    record.metric,
+                    record.country,
+                    record.value,
+                    `"${(record.notes || '').replace(/"/g, '""')}"`
+                ].join(','))
+            ];
+            
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
             
-            link.setAttribute('href', url);
-            link.setAttribute('download', `retention_data_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`);
-            link.style.visibility = 'hidden';
-            
+            link.href = url;
+            link.download = `retention_data_${new Date().toISOString().split('T')[0]}.csv`;
+            link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            showMessage('Data exported successfully', 'success');
         }
 
-        // Convert JSON to CSV
-        function convertToCSV(records) {
-            const headers = ['Date', 'Metric Type', 'Country', 'Value'];
-            const rows = records.map(record => [
-                record.date,
-                record.metric,
-                record.country,
-                record.value
-            ]);
-
-            const csvRows = [
-                headers.join(','),
-                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-            ];
-
-            return csvRows.join('\n');
+        // Change theme
+        function changeTheme(theme) {
+            const body = document.body;
+            
+            // Remove all theme classes
+            body.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+            
+            // Add selected theme
+            if (theme === 'dark') {
+                body.classList.add('theme-dark');
+                // Here you can add logic to apply dark theme
+            } else if (theme === 'auto') {
+                body.classList.add('theme-auto');
+                // Can apply logic to detect system preferences
+            } else {
+                body.classList.add('theme-light');
+            }
+            
+            localStorage.setItem('dashboardTheme', theme);
+            showMessage('Theme changed', 'success');
         }
 
-        // Load dashboard on page load
-        window.addEventListener('load', () => {
-            loadDashboardData();
-        });
+        // Load saved theme preferences
+        const savedTheme = localStorage.getItem('dashboardTheme') || 'light';
+        document.getElementById('themeSelect').value = savedTheme;
+        changeTheme(savedTheme);
     </script>
 </body>
 </html>
